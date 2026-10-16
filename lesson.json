@@ -1,0 +1,455 @@
+{
+  "schema_version": 1,
+  "id": "sat-engineer-static",
+  "revision": "v1.0.0",
+  "title": "Java · 클래스 칸과 객체 칸을 나눠 봐요",
+  "description": "static과 객체 상태를 작은 코드로 비교해요. 필수 6문제와 선택 도전 1문제예요.",
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html"
+  ],
+  "sections": [
+    {
+      "id": "how",
+      "title": "예상하고, 실행하고, 한 줄만 바꿔요",
+      "body": "실행하기 전에 결과를 먼저 예상해요.\n틀린 이유는 변수 칸이나 자료의 행에서 찾아요.\n준비 코드를 조금 바꾸고 결과를 비교해요.\n마지막 선택 도전은 힌트 없이 먼저 풀어봐요."
+    }
+  ],
+  "review_enabled": false,
+  "tasks": [
+    {
+      "id": "shared",
+      "title": "객체 둘이 같은 칸을 볼까요",
+      "goal": "static 필드는 클래스에 하나만 있어요.\n\n첫 객체로 count를 늘려 보세요.\n둘째 객체로 읽어도 늘어난 값이 보이게 해요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    static class Box {\n        // 클래스 전체가 공유하는 칸이에요.\n        static int count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 첫 객체와 둘째 객체를 따로 만들어요.\n        Box a = new Box();\n        Box b = new Box();\n        Box.count = n;\n        // 같은 클래스 칸을 두 객체가 봐요.\n        a.count = n;\n        System.out.println(b.count);\n    }\n}\n",
+      "solution": "class Main {\n    static class Box {\n        // 클래스 전체가 공유하는 칸이에요.\n        static int count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 첫 객체와 둘째 객체를 따로 만들어요.\n        Box a = new Box();\n        Box b = new Box();\n        Box.count = n;\n        // 같은 클래스 칸을 두 객체가 봐요.\n        a.count = n + 2;\n        System.out.println(b.count);\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "5"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": true,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`a.count = n + 2;`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    static class Box {\n        // 클래스 전체가 공유하는 칸이에요.\n        static int count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 첫 객체와 둘째 객체를 따로 만들어요.\n        Box a = new Box();\n        Box b = new Box();\n        Box.count = n;\n        // 같은 클래스 칸을 두 객체가 봐요.\n        a.count = n;\n        System.out.println(b.count);\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 3"
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 객체가 둘이라고 static 칸이 두 개 생기진 않아요."
+        },
+        {
+          "action": "patch_code",
+          "before": "a.count = n;",
+          "after": "a.count = n + 2;",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 5"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"NQ==\";\n    static final String[] SCENARIOS = {\"NwBuADU=\", \"MTEAbgA5\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "id": "individual",
+      "title": "객체마다 다른 칸을 바꿔요",
+      "goal": "인스턴스 필드는 객체마다 따로 있어요.\n\na.value만 n+2로 바꾸세요.\nb.value는 시작값 n으로 남아야 해요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    static class Box {\n        // 객체마다 따로 생기는 칸이에요.\n        int value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box a = new Box();\n        Box b = new Box();\n        // 두 객체가 각자 값을 가져요.\n        a.value = n;\n        b.value = n;\n        // 바꿀 대상 객체를 확인해요.\n        b.value = n + 2;\n        System.out.println(a.value + \" \" + b.value);\n    }\n}\n",
+      "solution": "class Main {\n    static class Box {\n        // 객체마다 따로 생기는 칸이에요.\n        int value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box a = new Box();\n        Box b = new Box();\n        // 두 객체가 각자 값을 가져요.\n        a.value = n;\n        b.value = n;\n        // 바꿀 대상 객체를 확인해요.\n        a.value = n + 2;\n        System.out.println(a.value + \" \" + b.value);\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "5 3"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": true,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`a.value = n + 2;`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    static class Box {\n        // 객체마다 따로 생기는 칸이에요.\n        int value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box a = new Box();\n        Box b = new Box();\n        // 두 객체가 각자 값을 가져요.\n        a.value = n;\n        b.value = n;\n        // 바꿀 대상 객체를 확인해요.\n        b.value = n + 2;\n        System.out.println(a.value + \" \" + b.value);\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 3 5"
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 필드 이름이 같아도 객체가 다르면 다른 칸이에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "b.value = n + 2;",
+          "after": "a.value = n + 2;",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 5 3"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"NSAz\";\n    static final String[] SCENARIOS = {\"NyA1AG4ANQ==\", \"MTEgOQBuADk=\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "id": "constructor-count",
+      "title": "생성자는 공유 횟수를 늘려요",
+      "goal": "새 객체를 만들 때마다 생성자가 실행돼요.\n\n객체마다 visits를 따로 두지 않게 고치세요.\n만든 두 객체의 횟수가 누적돼야 해요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    static class Box {\n        // 공유할 횟수 칸의 선언을 고쳐요.\n        int visits;\n        Box() {\n            // 생성할 때마다 횟수를 하나 늘려요.\n            visits++;\n        }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.visits = n;\n        // 객체를 두 번 만들고 누적 횟수를 읽어요.\n        new Box();\n        new Box();\n        System.out.println(Box.visits);\n    }\n}\n",
+      "solution": "class Main {\n    static class Box {\n        // 공유할 횟수 칸의 선언을 고쳐요.\n        static int visits;\n        Box() {\n            // 생성할 때마다 횟수를 하나 늘려요.\n            visits++;\n        }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.visits = n;\n        // 객체를 두 번 만들고 누적 횟수를 읽어요.\n        new Box();\n        new Box();\n        System.out.println(Box.visits);\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "5"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": true,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`static int visits;`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    static class Box {\n        // 공유할 횟수 칸의 선언을 고쳐요.\n        int visits;\n        Box() {\n            // 생성할 때마다 횟수를 하나 늘려요.\n            visits++;\n        }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.visits = n;\n        // 객체를 두 번 만들고 누적 횟수를 읽어요.\n        new Box();\n        new Box();\n        System.out.println(Box.visits);\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": true
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "지금 코드는 검사를 통과하지 못해요."
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 클래스로 인스턴스 필드를 읽으면 컴파일 오류예요."
+        },
+        {
+          "action": "patch_code",
+          "before": "int visits;",
+          "after": "static int visits;",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 5"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"NQ==\";\n    static final String[] SCENARIOS = {\"NwBuADU=\", \"MTEAbgA5\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "id": "shadow",
+      "title": "같은 이름의 지역 변수를 구분해요",
+      "goal": "지역 변수는 같은 이름의 필드를 가릴 수 있어요.\n\n지역 total 대신 클래스 필드 total을 출력하세요.\n출력 줄의 이름 앞에 Main을 붙여요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    // 클래스가 공유하는 total이에요.\n    static int total;\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 클래스 칸과 지역 칸에 다른 값을 넣어요.\n        Main.total = n;\n        int total = n + 10;\n        // 어느 칸을 읽는지 이름으로 지정해요.\n        System.out.println(total);\n    }\n}\n",
+      "solution": "class Main {\n    // 클래스가 공유하는 total이에요.\n    static int total;\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 클래스 칸과 지역 칸에 다른 값을 넣어요.\n        Main.total = n;\n        int total = n + 10;\n        // 어느 칸을 읽는지 이름으로 지정해요.\n        System.out.println(Main.total);\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "3"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": true,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`System.out.println(Main.total);`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    // 클래스가 공유하는 total이에요.\n    static int total;\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 클래스 칸과 지역 칸에 다른 값을 넣어요.\n        Main.total = n;\n        int total = n + 10;\n        // 어느 칸을 읽는지 이름으로 지정해요.\n        System.out.println(total);\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 13"
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 같은 이름이어도 지역 변수와 필드는 별도 칸이에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(total);",
+          "after": "System.out.println(Main.total);",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 3"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"Mw==\";\n    static final String[] SCENARIOS = {\"NQBuADU=\", \"OQBuADk=\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "id": "parameter",
+      "title": "매개변수 대신 필드를 갱신해요",
+      "goal": "매개변수 대입만으로 static 필드가 바뀌진 않아요.\n\nsetCount가 받은 값을 클래스 count에 저장하게 해요.\n대입문의 왼쪽만 고치세요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    // 클래스에 하나인 칸이에요.\n    static int count;\n    static void setCount(int count) {\n        // 매개변수와 필드 이름을 구분해요.\n        count = count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Main.count = n;\n        // 메서드가 받은 값으로 클래스 칸을 바꿔요.\n        setCount(n + 4);\n        System.out.println(Main.count);\n    }\n}\n",
+      "solution": "class Main {\n    // 클래스에 하나인 칸이에요.\n    static int count;\n    static void setCount(int count) {\n        // 매개변수와 필드 이름을 구분해요.\n        Main.count = count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Main.count = n;\n        // 메서드가 받은 값으로 클래스 칸을 바꿔요.\n        setCount(n + 4);\n        System.out.println(Main.count);\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "7"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": true,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`Main.count = count;`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    // 클래스에 하나인 칸이에요.\n    static int count;\n    static void setCount(int count) {\n        // 매개변수와 필드 이름을 구분해요.\n        count = count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Main.count = n;\n        // 메서드가 받은 값으로 클래스 칸을 바꿔요.\n        setCount(n + 4);\n        System.out.println(Main.count);\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 3"
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. count=count는 매개변수 자신에게 다시 넣을 뿐이에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "count = count;",
+          "after": "Main.count = count;",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 7"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"Nw==\";\n    static final String[] SCENARIOS = {\"OQBuADU=\", \"MTMAbgA5\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "id": "instance-method",
+      "title": "static 메서드는 객체를 명시해요",
+      "goal": "static 메서드에는 this가 없어요.\n\n준비된 item 객체의 value를 읽으세요.\n객체 없이 value를 읽는 줄을 고쳐요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    static class Box {\n        // 이 값은 객체에 들어 있어요.\n        int value;\n    }\n    static int read(Box item) {\n        // 어느 객체인지 직접 적어야 해요.\n        return value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box item = new Box();\n        item.value = n;\n        // static 메서드에 읽을 객체를 전달해요.\n        System.out.println(read(item));\n    }\n}\n",
+      "solution": "class Main {\n    static class Box {\n        // 이 값은 객체에 들어 있어요.\n        int value;\n    }\n    static int read(Box item) {\n        // 어느 객체인지 직접 적어야 해요.\n        return item.value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box item = new Box();\n        item.value = n;\n        // static 메서드에 읽을 객체를 전달해요.\n        System.out.println(read(item));\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "3"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": true,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`return item.value;`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    static class Box {\n        // 이 값은 객체에 들어 있어요.\n        int value;\n    }\n    static int read(Box item) {\n        // 어느 객체인지 직접 적어야 해요.\n        return value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box item = new Box();\n        item.value = n;\n        // static 메서드에 읽을 객체를 전달해요.\n        System.out.println(read(item));\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": true
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "지금 코드는 검사를 통과하지 못해요."
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. static 메서드에서 인스턴스 필드를 바로 읽을 수 없어요."
+        },
+        {
+          "action": "patch_code",
+          "before": "return value;",
+          "after": "return item.value;",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 3"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"Mw==\";\n    static final String[] SCENARIOS = {\"NQBuADU=\", \"OQBuADk=\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "id": "shared-and-own",
+      "title": "도전 · 공유값과 개인값을 함께 읽어요",
+      "goal": "공유 필드 하나와 객체별 필드 둘을 따로 계산해요.\n\na의 개인값을 늘려야 해요.\nshared 대신 own을 바꾸고 두 출력값을 비교해요.",
+      "language": "java",
+      "entry_file": "Main.java",
+      "starter_code": "class Main {\n    static class Box {\n        // 공유값과 개인값은 다른 칸이에요.\n        static int shared;\n        int own;\n        Box(int value) { own = value; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.shared = n;\n        Box a = new Box(n);\n        Box b = new Box(n + 1);\n        // a의 개인 칸만 두 배로 바꿔요.\n        a.shared *= 2;\n        System.out.println(a.own + Box.shared);\n        System.out.println(b.own + Box.shared);\n    }\n}\n",
+      "solution": "class Main {\n    static class Box {\n        // 공유값과 개인값은 다른 칸이에요.\n        static int shared;\n        int own;\n        Box(int value) { own = value; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.shared = n;\n        Box a = new Box(n);\n        Box b = new Box(n + 1);\n        // a의 개인 칸만 두 배로 바꿔요.\n        a.own *= 2;\n        System.out.println(a.own + Box.shared);\n        System.out.println(b.own + Box.shared);\n    }\n}\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "9\n7"
+        }
+      ],
+      "web_checks": [],
+      "git_checks": null,
+      "required": false,
+      "hints": [
+        "실행 전에 클래스 칸과 객체별 칸을 따로 적어 보세요.",
+        "`a.own *= 2;`"
+      ],
+      "narration": [
+        {
+          "action": "set_code",
+          "code": "class Main {\n    static class Box {\n        // 공유값과 개인값은 다른 칸이에요.\n        static int shared;\n        int own;\n        Box(int value) { own = value; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.shared = n;\n        Box a = new Box(n);\n        Box b = new Box(n + 1);\n        // a의 개인 칸만 두 배로 바꿔요.\n        a.shared *= 2;\n        System.out.println(a.own + Box.shared);\n        System.out.println(b.own + Box.shared);\n    }\n}\n",
+          "say": "준비 코드를 먼저 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 9 / 10"
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 객체 이름으로 static을 바꿔도 공유 칸이 바뀌어요."
+        },
+        {
+          "action": "patch_code",
+          "before": "a.shared *= 2;",
+          "after": "a.own *= 2;",
+          "say": "작은 부분을 바꿔 원리를 확인해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 비교해요. 9 / 7"
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "checker": "import com.sun.source.tree.VariableTree;\nimport com.sun.source.util.JavacTask;\nimport com.sun.source.util.TreeScanner;\nimport com.sun.source.util.Trees;\nimport java.io.ByteArrayOutputStream;\nimport java.nio.charset.StandardCharsets;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.ArrayList;\nimport java.util.Base64;\nimport java.util.Comparator;\nimport java.util.LinkedHashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.concurrent.TimeUnit;\n\nclass QuestContract {\n    // The prepared values' output, then each scenario: output, then name/value pairs. Base64 keeps any text intact.\n    static final String BASE = \"OQo3\";\n    static final String[] SCENARIOS = {\"MTUKMTEAbgA1\", \"MjcKMTkAbgA5\"};\n\n    // A learner sees only this message, never a stack trace.\n    static void fail(String message) {\n        System.err.println(message);\n        System.exit(1);\n    }\n\n    static String describe(Map<String, String> values) {\n        List<String> parts = new ArrayList<>();\n        values.forEach((name, value) -> parts.add(name + \" = \" + value));\n        return String.join(\", \", parts);\n    }\n\n    public static void main(String[] args) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        List<Map<String, String>> scenarios = new ArrayList<>();\n        List<String> expected = new ArrayList<>();\n        List<String> programs = new ArrayList<>();\n        programs.add(source);\n        for (String encoded : SCENARIOS) {\n            String[] parts = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8).split(\"\\u0000\", -1);\n            Map<String, String> values = new LinkedHashMap<>();\n            for (int i = 1; i + 1 < parts.length; i += 2) values.put(parts[i], parts[i + 1]);\n            scenarios.add(values);\n            expected.add(parts[0]);\n            programs.add(mutate(values));\n        }\n        // Run the learner's program and every changed copy at once; report in order.\n        List<java.util.concurrent.Future<String[]>> runs = new ArrayList<>();\n        var pool = java.util.concurrent.Executors.newFixedThreadPool(programs.size());\n        for (String program : programs) runs.add(pool.submit(() -> run(program)));\n        pool.shutdown();\n        String base = new String(Base64.getDecoder().decode(BASE), StandardCharsets.UTF_8);\n        String[] own = runs.get(0).get();\n        if (own[1] != null) fail(\"코드를 실행하면 오류가 나요. 코드 실행으로 오류 줄을 먼저 확인하세요.\\n\" + own[1]);\n        if (!own[0].equals(base)) fail(\"실행 결과가 기대와 달라요.\\n기대 출력:\\n\" + tail(base) + \"\\n실제 출력:\\n\" + tail(own[0]));\n        for (int i = 0; i < scenarios.size(); i++) {\n            String[] result = runs.get(i + 1).get();\n            String changed = \"준비 값을 \" + describe(scenarios.get(i)) + \"(으)로 바꾸면 \";\n            if (result[1] != null) fail(changed + \"오류가 나요.\\n\" + result[1]);\n            if (!result[0].equals(expected.get(i))) {\n                fail(changed + \"결과가 달라요.\\n값이 바뀌어도 맞는 식인지 확인하세요.\\n기대 출력:\\n\" + tail(expected.get(i))\n                    + \"\\n실제 출력:\\n\" + tail(result[0]));\n            }\n        }\n        System.out.print(programs.get(programs.size() - 1));\n    }\n\n    static String tail(String text) {\n        return text.length() > 600 ? text.substring(text.length() - 600) : text;\n    }\n\n    // Replace the first initializer of each prepared name, found by the compiler's own parser.\n    static String mutate(Map<String, String> values) throws Exception {\n        String source = Files.readString(Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8)) {\n            var task = (JavacTask) compiler.getTask(null, files, diagnostic -> {}, List.of(\"-proc:none\"), null,\n                files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = Trees.instance(task).getSourcePositions();\n            Map<String, long[]> found = new LinkedHashMap<>();\n            new TreeScanner<Void, Void>() {\n                public Void visitVariable(VariableTree node, Void unused) {\n                    String name = node.getName().toString();\n                    if (values.containsKey(name) && !found.containsKey(name) && node.getInitializer() != null) {\n                        found.put(name, new long[] {positions.getStartPosition(tree, node.getInitializer()),\n                            positions.getEndPosition(tree, node.getInitializer())});\n                    }\n                    return super.visitVariable(node, unused);\n                }\n            }.scan(tree, null);\n            for (String name : values.keySet()) {\n                long[] bounds = found.get(name);\n                if (bounds == null || bounds[0] < 0 || bounds[1] < bounds[0]) {\n                    fail(\"준비 코드의 \" + name + \" 선언과 처음 값은 그대로 두세요.\");\n                }\n            }\n            List<Map.Entry<String, long[]>> edits = new ArrayList<>(found.entrySet());\n            edits.sort(Comparator.comparingLong((Map.Entry<String, long[]> e) -> e.getValue()[0]).reversed());\n            StringBuilder changed = new StringBuilder(source);\n            for (var edit : edits) changed.replace((int) edit.getValue()[0], (int) edit.getValue()[1], values.get(edit.getKey()));\n            return changed.toString();\n        }\n    }\n\n    // Returns {output, null} or {null, problem}; problems are worded for the learner.\n    static String[] run(String program) throws Exception {\n        Path folder = Files.createTempDirectory(\"quest-contract\");\n        try {\n            Files.writeString(folder.resolve(\"Main.java\"), program);\n            String java = Path.of(System.getProperty(\"java.home\"), \"bin\", \"java\").toString();\n            Process process = new ProcessBuilder(java, \"-Xmx128m\", \"-Dfile.encoding=UTF-8\", \"-Dstdout.encoding=UTF-8\",\n                \"-Dstderr.encoding=UTF-8\", \"--source\", \"25\", \"Main.java\").directory(folder.toFile()).start();\n            process.getOutputStream().close();\n            ByteArrayOutputStream out = new ByteArrayOutputStream();\n            ByteArrayOutputStream err = new ByteArrayOutputStream();\n            Thread readOut = new Thread(() -> { try { process.getInputStream().transferTo(out); } catch (Exception ignored) {} });\n            Thread readErr = new Thread(() -> { try { process.getErrorStream().transferTo(err); } catch (Exception ignored) {} });\n            readOut.start();\n            readErr.start();\n            if (!process.waitFor(8, TimeUnit.SECONDS)) {\n                process.destroyForcibly();\n                return new String[] {null, \"실행이 8초 안에 끝나지 않아요. 반복 조건을 확인하세요.\"};\n            }\n            readOut.join();\n            readErr.join();\n            if (process.exitValue() != 0) return new String[] {null, tail(err.toString(StandardCharsets.UTF_8))};\n            String text = out.toString(StandardCharsets.UTF_8).replace(\"\\r\\n\", \"\\n\");\n            while (text.endsWith(\"\\n\")) text = text.substring(0, text.length() - 1);\n            return new String[] {text, null};\n        } finally {\n            try (var paths = Files.walk(folder)) {\n                paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());\n            }\n        }\n    }\n}\n"
+    }
+  ]
+}
