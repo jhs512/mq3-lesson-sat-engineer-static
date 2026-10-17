@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "sat-engineer-static",
-  "revision": "v1.0.1",
+  "revision": "v1.0.2",
   "title": "Java · 클래스 칸과 객체 칸을 나눠 봐요",
   "description": "static과 객체 상태를 작은 코드로 비교해요. 필수 6문제와 선택 도전 1문제예요.",
   "sources": [
@@ -43,11 +43,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    static class Box {\n        // 클래스 전체가 공유하는 칸이에요.\n        static int count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 첫 객체와 둘째 객체를 따로 만들어요.\n        Box a = new Box();\n        Box b = new Box();\n        Box.count = n;\n        // 같은 클래스 칸을 두 객체가 봐요.\n        a.count = n;\n        System.out.println(b.count);\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            4,
+            4
+          ],
+          "text": "객체가 두 개여도 static 칸은 하나예요. a로 바꾼 값을 b로 읽어도 같아요."
         },
         {
           "action": "run",
-          "expected_failure": false
+          "expected_failure": false,
+          "lines": [
+            15,
+            15
+          ]
         },
         {
           "action": "say",
@@ -56,8 +73,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "Box.count [3] ← a, b",
+              "a와 b에 별도 count 칸은 없어요"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. 객체가 둘이라고 static 칸이 두 개 생기진 않아요."
+          "text": "조심하세요. 객체가 둘이라고 static 칸이 두 개 생기진 않아요.",
+          "lines": [
+            15,
+            15
+          ]
         },
         {
           "action": "patch_code",
@@ -66,12 +99,37 @@
           "say": "a를 통해 공유 칸의 값을 바꿔요. b로 읽을 때도 같은 칸을 읽는지 볼게요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "두 객체에서 읽은 값이 함께 바뀌었어요. 객체마다 복사된 칸이 아니에요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "Box.count [5] ← a, b",
+              "두 이름으로 읽어도 같은 공유 칸이에요"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            15,
+            15
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
@@ -105,11 +163,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    static class Box {\n        // 객체마다 따로 생기는 칸이에요.\n        int value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box a = new Box();\n        Box b = new Box();\n        // 두 객체가 각자 값을 가져요.\n        a.value = n;\n        b.value = n;\n        // 바꿀 대상 객체를 확인해요.\n        b.value = n + 2;\n        System.out.println(a.value + \" \" + b.value);\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            4,
+            4
+          ],
+          "text": "static이 없으면 객체마다 자기 칸이 생겨요. 이름이 같아도 같은 저장 공간은 아니에요."
         },
         {
           "action": "run",
-          "expected_failure": false
+          "expected_failure": false,
+          "lines": [
+            16,
+            16
+          ]
         },
         {
           "action": "say",
@@ -118,8 +193,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "a → value [3]",
+              "b → value [5]"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. 필드 이름이 같아도 객체가 다르면 다른 칸이에요."
+          "text": "조심하세요. 필드 이름이 같아도 객체가 다르면 다른 칸이에요.",
+          "lines": [
+            16,
+            16
+          ]
         },
         {
           "action": "patch_code",
@@ -128,12 +219,37 @@
           "say": "a의 개인 필드에 값을 넣어요. b의 개인 필드는 그대로 두는 거예요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "a와 b의 값이 서로 달라졌어요. 인스턴스 필드는 객체마다 따로 있어요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "a → value [5]",
+              "b → value [3]"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            16,
+            16
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
@@ -167,11 +283,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    static class Box {\n        // 공유할 횟수 칸의 선언을 고쳐요.\n        int visits;\n        Box() {\n            // 생성할 때마다 횟수를 하나 늘려요.\n            visits++;\n        }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.visits = n;\n        // 객체를 두 번 만들고 누적 횟수를 읽어요.\n        new Box();\n        new Box();\n        System.out.println(Box.visits);\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            4,
+            4
+          ],
+          "text": "생성자는 객체를 만들 때마다 실행돼요. 누적할 칸은 객체 밖에 하나만 둬야 해요."
         },
         {
           "action": "run",
-          "expected_failure": true
+          "expected_failure": true,
+          "lines": [
+            4,
+            4
+          ]
         },
         {
           "action": "say",
@@ -180,8 +313,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "인스턴스 visits / 객체마다 별도 칸",
+              "Box.visits 접근 → 컴파일 오류"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. 클래스로 인스턴스 필드를 읽으면 컴파일 오류예요."
+          "text": "조심하세요. 클래스로 인스턴스 필드를 읽으면 컴파일 오류예요.",
+          "lines": [
+            4,
+            4
+          ]
         },
         {
           "action": "patch_code",
@@ -190,12 +339,37 @@
           "say": "방문 횟수를 static 필드로 바꿔요. 생성자가 같은 공유 칸을 늘리도록 해요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "생성할 때마다 공유 횟수가 누적돼요. 생성자는 객체를 만들 때마다 실행돼요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "Box.visits: 3 → 4 → 5",
+              "new Box() 두 번 → 생성자 두 번"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            4,
+            4
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
@@ -229,11 +403,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    // 클래스가 공유하는 total이에요.\n    static int total;\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 클래스 칸과 지역 칸에 다른 값을 넣어요.\n        Main.total = n;\n        int total = n + 10;\n        // 어느 칸을 읽는지 이름으로 지정해요.\n        System.out.println(total);\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            10,
+            10
+          ],
+          "text": "가까운 지역 변수가 같은 이름을 가려요. 클래스 이름을 붙여 공유 칸을 지정해요."
         },
         {
           "action": "run",
-          "expected_failure": false
+          "expected_failure": false,
+          "lines": [
+            12,
+            12
+          ]
         },
         {
           "action": "say",
@@ -242,8 +433,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "지역 total [13] ← total",
+              "Main.total [3]"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. 같은 이름이어도 지역 변수와 필드는 별도 칸이에요."
+          "text": "조심하세요. 같은 이름이어도 지역 변수와 필드는 별도 칸이에요.",
+          "lines": [
+            12,
+            12
+          ]
         },
         {
           "action": "patch_code",
@@ -252,12 +459,37 @@
           "say": "클래스 이름으로 필드를 지정해요. 지역 변수와 다른 칸임을 명시하는 거예요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "이번에는 클래스 필드의 값이 나와요. 이름이 같을 때 어느 칸을 읽는지 확인하세요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "지역 total [13]",
+              "Main.total [3] ← Main.total"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            12,
+            12
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
@@ -291,11 +523,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    // 클래스에 하나인 칸이에요.\n    static int count;\n    static void setCount(int count) {\n        // 매개변수와 필드 이름을 구분해요.\n        count = count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Main.count = n;\n        // 메서드가 받은 값으로 클래스 칸을 바꿔요.\n        setCount(n + 4);\n        System.out.println(Main.count);\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            4,
+            4
+          ],
+          "text": "양쪽 count는 모두 매개변수를 뜻해요. 공유 칸을 고르려면 소속을 적어야 해요."
         },
         {
           "action": "run",
-          "expected_failure": false
+          "expected_failure": false,
+          "lines": [
+            6,
+            6
+          ]
         },
         {
           "action": "say",
@@ -304,8 +553,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "매개변수 count [7] → 자기 자신",
+              "Main.count [3]"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. count=count는 매개변수 자신에게 다시 넣을 뿐이에요."
+          "text": "조심하세요. count=count는 매개변수 자신에게 다시 넣을 뿐이에요.",
+          "lines": [
+            6,
+            6
+          ]
         },
         {
           "action": "patch_code",
@@ -314,12 +579,37 @@
           "say": "대입 왼쪽에 클래스 이름을 붙여요. 매개변수 값을 공유 필드에 저장하는 거예요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "클래스 필드의 값이 바뀌었어요. 대입 양쪽이 같은 칸인지 다른 칸인지 따져 보세요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "매개변수 count [7] → Main.count [7]",
+              "오른쪽 값부터 구해 왼쪽 칸에 넣어요"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            6,
+            6
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
@@ -353,11 +643,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    static class Box {\n        // 이 값은 객체에 들어 있어요.\n        int value;\n    }\n    static int read(Box item) {\n        // 어느 객체인지 직접 적어야 해요.\n        return value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box item = new Box();\n        item.value = n;\n        // static 메서드에 읽을 객체를 전달해요.\n        System.out.println(read(item));\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            6,
+            6
+          ],
+          "text": "static 메서드에는 this가 없어요. 하지만 받은 객체를 통해 개인 칸을 읽을 수 있어요."
         },
         {
           "action": "run",
-          "expected_failure": true
+          "expected_failure": true,
+          "lines": [
+            8,
+            8
+          ]
         },
         {
           "action": "say",
@@ -366,8 +673,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "value만 읽기 → 대상 객체 없음",
+              "컴파일 오류 / item이 필요해요"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. static 메서드에서 인스턴스 필드를 바로 읽을 수 없어요."
+          "text": "조심하세요. static 메서드에서 인스턴스 필드를 바로 읽을 수 없어요.",
+          "lines": [
+            8,
+            8
+          ]
         },
         {
           "action": "patch_code",
@@ -376,12 +699,37 @@
           "say": "전달받은 객체에서 value를 읽어요. 어느 객체의 칸인지 지정하는 거예요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "선택한 객체의 값이 나왔어요. static 메서드에서도 객체를 지정하면 개인 필드를 읽어요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "item → Box 객체 → value [3]",
+              "read(item) → item.value"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            8,
+            8
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
@@ -415,11 +763,28 @@
         {
           "action": "set_code",
           "code": "class Main {\n    static class Box {\n        // 공유값과 개인값은 다른 칸이에요.\n        static int shared;\n        int own;\n        Box(int value) { own = value; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.shared = n;\n        Box a = new Box(n);\n        Box b = new Box(n + 1);\n        // a의 개인 칸만 두 배로 바꿔요.\n        a.shared *= 2;\n        System.out.println(a.own + Box.shared);\n        System.out.println(b.own + Box.shared);\n    }\n}\n",
-          "say": "먼저 준비 코드를 실행해 볼게요."
+          "say": "먼저 입력과 변수의 연결을 살펴봐요.",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            4,
+            4
+          ],
+          "text": "공유 칸 하나와 개인 칸 둘을 나눠 보세요. 각 출력식에서 어느 칸을 읽는지 더해요."
         },
         {
           "action": "run",
-          "expected_failure": false
+          "expected_failure": false,
+          "lines": [
+            16,
+            16
+          ]
         },
         {
           "action": "say",
@@ -428,8 +793,24 @@
         },
         {
           "action": "say",
+          "target": "memory",
+          "text": "첫 예제의 연결을 그림으로 짚어봐요. 주소 숫자 대신 어느 칸인지 표시했어요.",
+          "diagram": {
+            "title": "바꾸기 전 · 첫 예제 입력",
+            "rows": [
+              "Box.shared [6]",
+              "a.own [3] / b.own [4]"
+            ]
+          }
+        },
+        {
+          "action": "say",
           "target": "editor",
-          "text": "조심하세요. 객체 이름으로 static을 바꿔도 공유 칸이 바뀌어요."
+          "text": "조심하세요. 객체 이름으로 static을 바꿔도 공유 칸이 바뀌어요.",
+          "lines": [
+            16,
+            16
+          ]
         },
         {
           "action": "patch_code",
@@ -438,12 +819,37 @@
           "say": "a의 개인 필드에만 계산을 적용해요. 공유 필드는 그대로 두는 거예요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
         },
         {
           "action": "say",
           "target": "output",
           "text": "공유값과 개인값을 각각 비교하세요. 같은 객체 안에서도 필드의 소속은 다를 수 있어요."
+        },
+        {
+          "action": "say",
+          "target": "memory",
+          "text": "같은 입력으로 바뀐 칸만 비교해 보세요. 코드의 왼쪽이 어느 칸인지 다시 짚어봐요.",
+          "diagram": {
+            "title": "바꾼 뒤 · 같은 첫 예제 입력",
+            "rows": [
+              "Box.shared [3]",
+              "a.own [6] / b.own [4]"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "lines": [
+            16,
+            16
+          ],
+          "text": "다른 예제 입력에서도 직접 실행해 보세요. 숫자가 달라도 같은 연결로 설명할 수 있나요?"
         },
         {
           "action": "submit"
